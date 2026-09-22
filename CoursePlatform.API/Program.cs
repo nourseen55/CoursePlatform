@@ -4,6 +4,7 @@ using CoursePlatform.API.ExceptionHandling;
 using CoursePlatform.Application.Interfaces.Repositories;
 using CoursePlatform.Application.Interfaces.Services;
 using CoursePlatform.Application.Interfaces.UnitOfWork;
+using CoursePlatform.Application.Services;
 using CoursePlatform.Infrastructure.Identity;
 using CoursePlatform.Infrastructure.Persistence;
 using CoursePlatform.Infrastructure.Persistence.Repositories;
@@ -108,6 +109,8 @@ namespace CoursePlatform.API
             builder.Services.AddScoped<IJwtTokenService, JwtTokenService>();
             builder.Services.AddScoped<IUserService, UserService>();
             builder.Services.AddScoped<IAuthService, AuthService>();
+            builder.Services.AddScoped<ICourseService, CourseService>();
+            builder.Services.AddScoped<ILessonService, LessonService>();
             builder.Services
                 .AddIdentityCore<ApplicationUser>()
                 .AddRoles<IdentityRole>()

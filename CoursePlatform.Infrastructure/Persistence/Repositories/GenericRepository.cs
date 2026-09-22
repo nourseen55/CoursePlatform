@@ -1,4 +1,5 @@
-﻿using CoursePlatform.Application.Interfaces.Repositories;
+﻿using System.Linq.Expressions;
+using CoursePlatform.Application.Interfaces.Repositories;
 using CoursePlatform.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
 
@@ -42,5 +43,28 @@ public class GenericRepository<T> : IGenericRepository<T>
     public void Delete(T entity)
     {
         _dbSet.Remove(entity);
+    }
+
+    public async Task<(IReadOnlyList<T> Items, int TotalCount)> GetPagedAsync(
+    int pageNumber,
+    int pageSize, params Expression<Func<T, object>>[] includes)
+    {
+        var query = _dbSet
+          .AsNoTracking()
+          .AsQueryable();
+
+        foreach (var include in includes)
+        {
+            query = query.Include(include);
+        }
+        var totalCount = await query.CountAsync();
+
+        var items = await query
+            .AsNoTracking()
+            .Skip((pageNumber - 1) * pageSize)
+            .Take(pageSize)
+            .ToListAsync();
+
+        return (items, totalCount);
     }
 }
