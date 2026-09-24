@@ -19,4 +19,6 @@ public interface IGenericRepository<T>
     void Update(T entity);
 
     void Delete(T entity);
+    public IQueryable<T> GetAllQuerable();
+
 }

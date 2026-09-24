@@ -29,6 +29,12 @@ public class GenericRepository<T> : IGenericRepository<T>
             .AsNoTracking()
             .ToListAsync();
     }
+    public  IQueryable<T> GetAllQuerable()
+    {
+        return  _dbSet
+            .AsNoTracking()
+            .AsQueryable();
+    }
 
     public async Task AddAsync(T entity)
     {
