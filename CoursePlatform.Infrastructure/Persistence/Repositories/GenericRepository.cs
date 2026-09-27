@@ -22,12 +22,40 @@ public class GenericRepository<T> : IGenericRepository<T>
     {
         return await _dbSet.FindAsync(id);
     }
+    public async Task<T?> GetByIdAsync(
+    int id,
+    params Expression<Func<T, object>>[] includes)
+    {
+        IQueryable<T> query = _dbSet.AsNoTracking();
 
+        foreach (var include in includes)
+        {
+            query = query.Include(include);
+        }
+
+        return await query.FirstOrDefaultAsync(
+            x => x.Id == id);
+    }
     public async Task<IReadOnlyList<T>> GetAllAsync()
     {
         return await _dbSet
             .AsNoTracking()
             .ToListAsync();
+    }
+    public async Task<IReadOnlyList<T>> GetAllAsync(
+    Expression<Func<T, bool>> predicate,
+    params Expression<Func<T, object>>[] includes)
+    {
+        IQueryable<T> query = _dbSet
+            .AsNoTracking()
+            .Where(predicate);
+
+        foreach (var include in includes)
+        {
+            query = query.Include(include);
+        }
+
+        return await query.ToListAsync();
     }
     public  IQueryable<T> GetAllQuerable()
     {
@@ -72,5 +100,21 @@ public class GenericRepository<T> : IGenericRepository<T>
             .ToListAsync();
 
         return (items, totalCount);
+    }
+    public async Task<IReadOnlyList<T>> GetAllAsync(
+    Expression<Func<T, bool>> predicate)
+    {
+        return await _dbSet
+            .AsNoTracking()
+            .Where(predicate)
+            .ToListAsync();
+    }
+
+    public async Task<T?> FirstOrDefaultAsync(
+        Expression<Func<T, bool>> predicate)
+    {
+        return await _dbSet
+            .AsNoTracking()
+            .FirstOrDefaultAsync(predicate);
     }
 }
