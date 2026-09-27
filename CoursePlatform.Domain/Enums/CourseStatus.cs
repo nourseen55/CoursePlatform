@@ -7,3 +7,9 @@ public enum CourseStatus
     Published = 2,
     Archived = 3
 }
+public enum CourseAccessResult
+{
+    Success,
+    CourseNotFound,
+    NotEnrolled
+}

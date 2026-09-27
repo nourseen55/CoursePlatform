@@ -10,4 +10,9 @@
     <ProjectReference Include="..\CoursePlatform.Domain\CoursePlatform.Domain.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <PackageReference Include="FluentValidation" Version="8.5.0" />
+    <PackageReference Include="FluentValidation.DependencyInjectionExtensions" Version="8.5.0" />
+  </ItemGroup>
+
 </Project>

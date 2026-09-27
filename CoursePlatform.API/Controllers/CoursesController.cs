@@ -1,6 +1,7 @@
 ﻿using CoursePlatform.API.Extensions;
 using CoursePlatform.Application.DTOs.Courses;
 using CoursePlatform.Application.Interfaces.Services;
+using CoursePlatform.Domain.Enums;
 using CoursePlatform.Infrastructure.Identity;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -50,5 +51,77 @@ namespace CoursePlatform.API.Controllers
 
             return Ok(result);
         }
+        [AllowAnonymous]
+        [HttpGet("{id:int}")]
+        public async Task<IActionResult> GetById(int id)
+        {
+            var result = await courseService.GetByIdAsync(id);
+
+            if (result.result == CourseActionResult.NotFound)
+                return NotFound("Course not found.");
+
+            return Ok(result.data);
+        }
+        [Authorize(Roles = Roles.Instructor)]
+        [HttpPost("{id:int}/publish")]
+        public async Task<IActionResult> Publish(int id)
+        {
+            var instructorId = User.GetUserId();
+
+            if (instructorId is null)
+                return Unauthorized();
+
+            var result = await courseService.PublishAsync(
+                id,
+                instructorId);
+
+            if (result == CourseActionResult.NotFound)
+                return NotFound("Course not found.");
+
+            if (result == CourseActionResult.Unauthorized)
+                return Forbid();
+
+            if (result == CourseActionResult.NoLessons)
+                return BadRequest(
+                    "Course must contain at least one lesson before publishing.");
+
+            if (result == CourseActionResult.InvalidStatus)
+                return BadRequest(
+                    "Only draft courses can be published.");
+
+            if (result == CourseActionResult.Failed)
+                return BadRequest("Failed to publish course.");
+
+            return NoContent();
+        }
+        [Authorize(Roles = Roles.Instructor)]
+        [HttpPost("{id:int}/archive")]
+        public async Task<IActionResult> Archive(int id)
+        {
+            var instructorId = User.GetUserId();
+
+            if (instructorId is null)
+                return Unauthorized();
+
+            var result = await courseService.ArchiveAsync(
+                id,
+                instructorId);
+
+            if (result == CourseActionResult.NotFound)
+                return NotFound("Course not found.");
+
+            if (result == CourseActionResult.Unauthorized)
+                return Forbid();
+
+            if (result == CourseActionResult.InvalidStatus)
+                return BadRequest(
+                    "Only published courses can be archived.");
+
+            if (result == CourseActionResult.Failed)
+                return BadRequest("Failed to archive course.");
+
+            return NoContent();
+        }
+
     }
 }

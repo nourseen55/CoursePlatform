@@ -9,5 +9,10 @@ namespace CoursePlatform.Application.Interfaces.Services
             int courseId,
             CreateLessonRequest request,
             string instructorId);
+        Task<(LessonActionResult result, LessonResponse? data)> GetByIdAsync(
+    int lessonId);
+        Task<LessonActionResult> DeleteAsync(
+    int lessonId,
+    string instructorId);
     }
 }

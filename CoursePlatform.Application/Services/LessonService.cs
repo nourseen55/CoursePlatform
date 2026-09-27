@@ -1,4 +1,4 @@
-﻿using CoursePlatform.Application.DTOs.Lessons;
+﻿using CoursePlatform.Application.DTOs.Enrollments;
 using CoursePlatform.Application.Interfaces.Services;
 using CoursePlatform.Application.Interfaces.UnitOfWork;
 using CoursePlatform.Domain.Entities;
@@ -7,56 +7,83 @@ using CoursePlatform.Domain.Enums;
 namespace CoursePlatform.Application.Services
 {
 
-    public class LessonService(
-        IUnitOfWork unitOfWork) : ILessonService
+    public class EnrollmentService(
+    IUnitOfWork unitOfWork) : IEnrollmentService
     {
-        public async Task<(LessonActionResult result, LessonResponse? data)> CreateAsync(
-            int courseId,
-            CreateLessonRequest request,
-            string instructorId)
+        public async Task<(
+            EnrollmentActionResult result,
+            EnrollmentResponse? data)>
+            EnrollAsync(
+                int courseId,
+                string studentId)
         {
             var course = await unitOfWork
                 .Repository<Course>()
                 .GetByIdAsync(courseId);
 
             if (course is null)
-            {
-                return (LessonActionResult.CourseNotFound, null);
-            }
+                return (
+                    EnrollmentActionResult.CourseNotFound,
+                    null);
 
-            if (course.InstructorId != instructorId)
-            {
-                return (LessonActionResult.Unauthorized, null);
-            }
+            if (course.Status != CourseStatus.Published)
+                return (
+                    EnrollmentActionResult.NotPublished,
+                    null);
 
-            var lesson = new Lesson
+            var existingEnrollment =
+                 unitOfWork.Repository<Enrollment>()
+                    .GetAllQuerable().FirstOrDefault(e => e.CourseId == courseId && e.StudentId == studentId);
+
+            if (existingEnrollment is not null)
+                return (
+                    EnrollmentActionResult.AlreadyEnrolled,
+                    null);
+
+            var enrollment = new Enrollment
             {
+                StudentId = studentId,
                 CourseId = courseId,
-                Title = request.Title.Trim(),
-                Description = request.Description.Trim(),
-                VideoUrl = request.VideoUrl.Trim(),
-                Order = request.Order,
-                CreatedAt = DateTime.UtcNow
+                Status = EnrollmentStatus.Active,
+                EnrolledAt = DateTime.UtcNow
             };
 
-            await unitOfWork
-                .Repository<Lesson>()
-                .AddAsync(lesson);
+            await unitOfWork.Repository<Enrollment>().AddAsync(enrollment);
 
             await unitOfWork.SaveChangesAsync();
 
-            var response = new LessonResponse
+            var response = new EnrollmentResponse
             {
-                Id = lesson.Id,
-                CourseId = lesson.CourseId,
-                Title = lesson.Title,
-                Description = lesson.Description,
-                VideoUrl = lesson.VideoUrl,
-                Order = lesson.Order,
-                CreatedAt = lesson.CreatedAt
+                Id = enrollment.Id,
+                CourseId = course.Id,
+                CourseTitle = course.Title,
+                Status = enrollment.Status.ToString(),
+                EnrolledAt = enrollment.EnrolledAt
             };
 
-            return (LessonActionResult.Success, response);
+            return (
+                EnrollmentActionResult.Success,
+                response);
+        }
+        public async Task<IReadOnlyList<EnrollmentResponse>>  GetMyEnrollmentsAsync(string studentId)
+        {
+            var enrollments = await unitOfWork
+                .Repository<Enrollment>()
+                .GetAllAsync(
+                    e => e.StudentId == studentId,
+                    e => e.Course);
+
+            return enrollments
+                .OrderByDescending(e => e.EnrolledAt)
+                .Select(e => new EnrollmentResponse
+                {
+                    Id = e.Id,
+                    CourseId = e.CourseId,
+                    CourseTitle = e.Course.Title,
+                    Status = e.Status.ToString(),
+                    EnrolledAt = e.EnrolledAt
+                })
+                .ToList();
         }
     }
 }

@@ -5,6 +5,7 @@
         Success,
         CourseNotFound,
         Unauthorized,
-        Failed
+        Failed,
+        NotFound,
     }
 }

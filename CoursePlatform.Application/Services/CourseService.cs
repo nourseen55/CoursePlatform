@@ -90,5 +90,183 @@ namespace CoursePlatform.Application.Services
                     result.TotalCount / (double)pageSize)
             };
         }
+        public async Task<(
+    CourseActionResult result,
+    CourseWithLessonsResponse? data)> GetByIdAsync(
+        int courseId)
+        {
+            var course = await unitOfWork
+                .Repository<Course>()
+                .GetByIdAsync(
+                    courseId,
+                    c => c.Lessons);
+
+            if (course is null)
+            {
+                return (
+                    CourseActionResult.NotFound,
+                    null);
+            }
+
+            var response = new CourseWithLessonsResponse
+            {
+                Id = course.Id,
+                Title = course.Title,
+                Description = course.Description,
+                InstructorId = course.InstructorId,
+                Status = course.Status.ToString(),
+                CreatedAt = course.CreatedAt,
+
+                Lessons = course.Lessons
+                    .OrderBy(l => l.Order)
+                    .Select(l => new LessonResponse
+                    {
+                        Id = l.Id,
+                        CourseId = l.CourseId,
+                        Title = l.Title,
+                        Description = l.Description,
+                        VideoUrl = l.VideoUrl,
+                        Order = l.Order,
+                        CreatedAt = l.CreatedAt
+                    })
+                    .ToList()
+            };
+
+            return (
+                CourseActionResult.Success,
+                response);
+        }
+        public async Task<CourseActionResult> PublishAsync(
+    int courseId,
+    string instructorId)
+        {
+            var course = await unitOfWork
+                .Repository<Course>()
+                .GetByIdAsync(
+                    courseId,
+                    c => c.Lessons);
+
+            if (course is null)
+            {
+                return CourseActionResult.NotFound;
+            }
+
+            if (course.InstructorId != instructorId)
+            {
+                return CourseActionResult.Unauthorized;
+            }
+
+            if (course.Status != CourseStatus.Draft)
+            {
+                return CourseActionResult.InvalidStatus;
+            }
+
+            if (!course.Lessons.Any())
+            {
+                return CourseActionResult.NoLessons;
+            }
+
+            course.Status = CourseStatus.Published;
+            course.UpdatedAt = DateTime.UtcNow;
+
+            unitOfWork
+                .Repository<Course>()
+                .Update(course);
+
+            await unitOfWork.SaveChangesAsync();
+
+            return CourseActionResult.Success;
+        }
+        public async Task<CourseActionResult> ArchiveAsync(
+    int courseId,
+    string instructorId)
+        {
+            var course = await unitOfWork
+                .Repository<Course>()
+                .GetByIdAsync(courseId);
+
+            if (course is null)
+            {
+                return CourseActionResult.NotFound;
+            }
+
+            if (course.InstructorId != instructorId)
+            {
+                return CourseActionResult.Unauthorized;
+            }
+
+            if (course.Status != CourseStatus.Published)
+            {
+                return CourseActionResult.InvalidStatus;
+            }
+
+            course.Status = CourseStatus.Archived;
+            course.UpdatedAt = DateTime.UtcNow;
+
+            unitOfWork
+                .Repository<Course>()
+                .Update(course);
+
+            await unitOfWork.SaveChangesAsync();
+
+            return CourseActionResult.Success;
+        }
+        public async Task<(
+    CourseAccessResult result,
+    CourseWithLessonsResponse? data)>
+    GetForStudentAsync(
+        int courseId,
+        string studentId)
+        {
+            var course = await unitOfWork
+                .Repository<Course>()
+                .GetByIdAsync(
+                    courseId,
+                    c => c.Lessons);
+
+            if (course is null)
+                return (
+                    CourseAccessResult.CourseNotFound,
+                    null);
+
+
+            var enrollment =
+                 unitOfWork.Repository<Enrollment>()
+                    .GetAllQuerable().FirstOrDefault(e => e.CourseId == courseId && e.StudentId == studentId);
+
+
+            if (enrollment is null)
+                return (
+                    CourseAccessResult.NotEnrolled,
+                    null);
+
+            var response = new CourseWithLessonsResponse
+            {
+                Id = course.Id,
+                Title = course.Title,
+                Description = course.Description,
+                InstructorId = course.InstructorId,
+                Status = course.Status.ToString(),
+                CreatedAt = course.CreatedAt,
+
+                Lessons = course.Lessons
+                    .OrderBy(l => l.Order)
+                    .Select(l => new LessonResponse
+                    {
+                        Id = l.Id,
+                        CourseId = l.CourseId,
+                        Title = l.Title,
+                        Description = l.Description,
+                        VideoUrl = l.VideoUrl,
+                        Order = l.Order,
+                        CreatedAt = l.CreatedAt
+                    })
+                    .ToList()
+            };
+
+            return (
+                CourseAccessResult.Success,
+                response);
+        }
     }
 }

@@ -42,5 +42,40 @@ namespace CoursePlatform.API.Controllers
                 StatusCodes.Status201Created,
                 result.data);
         }
+        [AllowAnonymous]
+        [HttpGet("{lessonId:int}")]
+        public async Task<IActionResult> GetById(int lessonId)
+        {
+            var result = await lessonService.GetByIdAsync(lessonId);
+
+            if (result.result == LessonActionResult.NotFound)
+                return NotFound("Lesson not found.");
+
+            return Ok(result.data);
+        }
+        [Authorize(Roles = Roles.Instructor)]
+        [HttpDelete("{lessonId:int}")]
+        public async Task<IActionResult> Delete(int lessonId)
+        {
+            var instructorId = User.GetUserId();
+
+            if (instructorId is null)
+                return Unauthorized();
+
+            var result = await lessonService.DeleteAsync(
+                lessonId,
+                instructorId);
+
+            if (result == LessonActionResult.NotFound)
+                return NotFound("Lesson not found.");
+
+            if (result == LessonActionResult.Unauthorized)
+                return Forbid();
+
+            if (result == LessonActionResult.Failed)
+                return BadRequest("Failed to delete lesson.");
+
+            return NoContent();
+        }
     }
 }

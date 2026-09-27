@@ -1,5 +1,6 @@
 ﻿using System.Text;
 using CoursePlatform.API.ExceptionHandling;
+using CoursePlatform.API.Filters;
 using CoursePlatform.Infrastructure.Identity;
 using CoursePlatform.Infrastructure.Persistence;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -16,8 +17,10 @@ namespace CoursePlatform.API.DependencyInjection
             IConfiguration configuration)
         {
             // MVC / Controllers
-            services.AddControllers();
-
+            services.AddControllers(options =>
+            {
+                options.Filters.Add<ValidationFilter>();
+            });
             // Swagger
             services.AddEndpointsApiExplorer();
 

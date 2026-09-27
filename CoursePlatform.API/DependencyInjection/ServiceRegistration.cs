@@ -2,9 +2,11 @@
 using CoursePlatform.Application.Interfaces.Services;
 using CoursePlatform.Application.Interfaces.UnitOfWork;
 using CoursePlatform.Application.Services;
+using CoursePlatform.Application.Validators;
 using CoursePlatform.Infrastructure.Identity;
 using CoursePlatform.Infrastructure.Persistence.Repositories;
 using CoursePlatform.Infrastructure.Persistence.UnitOfWork;
+using FluentValidation;
 
 namespace CoursePlatform.API.DependencyInjection
 {
@@ -27,12 +29,15 @@ namespace CoursePlatform.API.DependencyInjection
             services.AddScoped<IAuthService, AuthService>();
             services.AddScoped<ICourseService, CourseService>();
             services.AddScoped<ILessonService, LessonService>();
-
+            services.AddScoped<IEnrollmentService, EnrollmentService>();
+            services.AddScoped<IProgressService, ProgressService>();
             // JWT
             services.AddScoped<IJwtTokenService, JwtTokenService>();
 
             // Identity Seeder
             services.AddScoped<IIdentitySeeder, IdentitySeeder>();
+
+            services.AddValidatorsFromAssemblyContaining<CreateUserValidator>();
 
             return services;
         }
