@@ -1,0 +1,71 @@
+
+<section class="login-page">
+  <div class="login-card">
+
+    <div class="login-icon">✦</div>
+
+    <span class="eyebrow">WELCOME BACK</span>
+    <h2>أهلًا بيكي من جديد</h2>
+    <p class="login-description">
+      سجّلي دخولك عشان تكمّلي رحلة التعلّم.
+    </p>
+
+    <form [formGroup]="form" (ngSubmit)="submit()">
+
+      <div class="form-field">
+        <label for="email">الإيميل</label>
+
+        <input
+          id="email"
+          type="email"
+          formControlName="email"
+          placeholder="name@example.com"
+          autocomplete="email"
+          [class.invalid]="form.controls.email.touched && form.controls.email.invalid"
+        />
+
+        @if (form.controls.email.touched && form.controls.email.hasError('required')) {
+          <small class="field-error">الإيميل مطلوب.</small>
+        } @else if (form.controls.email.touched && form.controls.email.hasError('email')) {
+          <small class="field-error">اكتبي إيميل بصيغة صحيحة.</small>
+        }
+      </div>
+
+      <div class="form-field">
+        <label for="password">الباسورد</label>
+
+        <input
+          id="password"
+          type="password"
+          formControlName="password"
+          placeholder="اكتبي الباسورد"
+          autocomplete="current-password"
+          [class.invalid]="form.controls.password.touched && form.controls.password.invalid"
+        />
+
+        @if (form.controls.password.touched && form.controls.password.hasError('required')) {
+          <small class="field-error">الباسورد مطلوب.</small>
+        }
+      </div>
+
+      @if (error()) {
+        <p class="form-error" role="alert">{{ error() }}</p>
+      }
+
+      <button
+        class="login-button"
+        type="submit"
+        [disabled]="isSubmitting()"
+      >
+        {{ isSubmitting() ? 'جاري تسجيل الدخول...' : 'تسجيل الدخول' }}
+        @if (!isSubmitting()) {
+          <span aria-hidden="true">←</span>
+        }
+      </button>
+
+    </form>
+
+    <p class="login-footer">Your learning journey starts here ✨</p>
+
+  </div>
+</section>

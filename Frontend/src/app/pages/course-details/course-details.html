@@ -1,0 +1,198 @@
+<section class="details-page">
+  <a class="back-link" routerLink="/courses">
+    <span>←</span>
+    الرجوع لكل الكورسات
+  </a>
+
+  @if (isLoading()) {
+    <div class="details-state">
+      <div class="loader"></div>
+      <p>بنحمّل تفاصيل الكورس...</p>
+    </div>
+  } @else if (error()) {
+    <div class="details-state error-state">
+      <span class="state-icon">🔎</span>
+      <h2>مش لاقيين الكورس ده</h2>
+      <p>{{ error() }}</p>
+      <a class="primary-link" routerLink="/courses">
+        عرض كل الكورسات
+      </a>
+    </div>
+  } @else if (!canView()) {
+    <div class="details-state error-state">
+      <span class="state-icon">🔒</span>
+      <h2>الكورس ده مش متاح حالياً</h2>
+      <p>الكورس لسه ماتنشرش أو اتأرشف.</p>
+      <a class="primary-link" routerLink="/courses">
+        عرض كل الكورسات
+      </a>
+    </div>
+  } @else if (course(); as c) {
+    <header class="course-hero">
+      <div class="hero-content">
+        <span class="hero-label">COURSE OVERVIEW</span>
+
+        <h1>{{ c.title }}</h1>
+
+        <p class="hero-description">{{ c.description }}</p>
+
+        <div class="hero-meta">
+          <span class="status-badge">{{ c.status }}</span>
+
+          <span class="meta-item">
+            📚 {{ sortedLessons().length }} دروس
+          </span>
+
+          <span class="meta-item">
+            📅 {{ c.createdAt | date:'dd/MM/yyyy' }}
+          </span>
+        </div>
+      </div>
+
+      <div class="hero-decoration" aria-hidden="true">
+        <span>✦</span>
+        <span>✧</span>
+        <span>✦</span>
+      </div>
+    </header>
+
+    <!-- Enrollment and progress -->
+    @if (isStudent()) {
+      <section class="progress-section">
+        @if (isEnrolled()) {
+          <div class="progress-card">
+            <div class="progress-heading">
+              <div>
+                <span class="eyebrow">YOUR PROGRESS</span>
+                <h2>رحلتك في الكورس</h2>
+              </div>
+
+              <span class="progress-icon">✦</span>
+            </div>
+
+            @if (progress(); as p) {
+              <div class="progress-summary">
+                <span>
+                  {{ p.completedLessons }} من
+                  {{ p.totalLessons }} دروس مكتملة
+                </span>
+
+                <strong>
+                  {{ p.progressPercentage | number:'1.0-0' }}%
+                </strong>
+              </div>
+
+              <div
+                class="progress-track"
+                role="progressbar"
+                [attr.aria-valuenow]="p.progressPercentage"
+                aria-valuemin="0"
+                aria-valuemax="100"
+                [attr.aria-label]="'نسبة التقدم ' + p.progressPercentage + '%'"
+              >
+                <div
+                  class="progress-fill"
+                  [style.width.%]="p.progressPercentage"
+                ></div>
+              </div>
+            } @else {
+              <p class="progress-loading">
+                بنحمّل تقدّمك في الكورس...
+              </p>
+            }
+          </div>
+        } @else if (c.status === 'Published') {
+          <div class="enroll-card">
+            <div class="enroll-info">
+              <span class="eyebrow">START LEARNING</span>
+              <h2>جاهزة تبدأي رحلتك؟</h2>
+              <p>
+                اشتركي في الكورس علشان تتابعي الدروس وتسجّلي تقدّمك.
+              </p>
+            </div>
+
+            <button
+              class="enroll-button"
+              type="button"
+              (click)="enroll()"
+              [disabled]="isBusy()"
+            >
+              {{ isBusy() ? 'جاري الاشتراك...' : 'اشتراك في الكورس' }}
+              <span aria-hidden="true">←</span>
+            </button>
+          </div>
+        }
+      </section>
+    } @else if (!auth.isLoggedIn()) {
+      <div class="login-notice">
+        <span>✦</span>
+        <p>
+          سجّلي دخولك كـ Student علشان تشتركي في الكورس وتتابعي تقدّمك.
+        </p>
+        <a class="primary-link" routerLink="/login">
+          تسجيل الدخول
+        </a>
+      </div>
+    }
+
+    @if (message()) {
+      <div class="details-message" role="alert">
+        <span>!</span>
+        <p>{{ message() }}</p>
+      </div>
+    }
+
+    <!-- Lessons -->
+    <section class="lessons-section">
+      <div class="lessons-heading">
+        <div>
+          <span class="eyebrow">YOUR LEARNING PATH</span>
+          <h2>محتوى الكورس</h2>
+          <p>كل اللي هتتعلميه في الكورس ده، خطوة بخطوة.</p>
+        </div>
+
+        <div class="lesson-count">
+          {{ sortedLessons().length }} دروس
+        </div>
+      </div>
+
+      @if (sortedLessons().length > 0) {
+        <div class="lessons-list">
+          @for (lesson of sortedLessons(); track lesson.id) {
+            <article class="lesson-card">
+              <div class="lesson-number">
+                {{ lesson.order }}
+              </div>
+
+              <div class="lesson-content">
+                <h3>{{ lesson.title }}</h3>
+                <p>{{ lesson.description }}</p>
+              </div>
+
+              @if (isEnrolled()) {
+                <button
+                  class="complete-lesson-button"
+                  type="button"
+                  (click)="completeLesson(lesson.id)"
+                  [disabled]="isBusy()"
+                >
+                  {{ isBusy() ? 'جاري الحفظ...' : 'إكمال الدرس' }}
+                </button>
+              } @else {
+                <div class="lesson-decoration" aria-hidden="true">
+                  →
+                </div>
+              }
+            </article>
+          }
+        </div>
+      } @else {
+        <div class="details-state empty-state">
+          <span class="state-icon">📝</span>
+          <h3>الدروس لسه في الطريق</h3>
+          <p>مفيش دروس مضافة للكورس ده لحد دلوقتي.</p>
+        </div>
+      }
+    </section>
+  }
+</section>

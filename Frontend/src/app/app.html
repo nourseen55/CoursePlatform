@@ -1,0 +1,57 @@
+
+<header class="app-header">
+  <a class="brand" routerLink="/courses">
+    <span class="brand-icon">✦</span>
+    <span>{{ title }}</span>
+  </a>
+
+  <nav class="navbar">
+    <a
+      class="nav-link"
+      routerLink="/courses"
+      routerLinkActive="active"
+    >
+      الكورسات
+    </a>
+@if (auth.role() === 'Student') {
+  <a  class="nav-link" routerLink="/my-courses" routerLinkActive="active">كورساتي</a>
+}
+@if (auth.role() === 'Admin') {
+  <a class="nav-link" routerLink="/admin" routerLinkActive="active">إدارة المستخدمين</a>
+}
+ @if (auth.role() === 'Instructor') {
+    <a class="nav-link" routerLink="/instructor" routerLinkActive="active">لوحة المدرّس</a>
+  }
+    @if (auth.isLoggedIn()) {
+      <div class="user-info">
+        <span class="user-avatar">✿</span>
+        <span class="user-greeting">
+          أهلًا {{ auth.user()?.fullName }}
+          <small>{{ auth.role() }}</small>
+        </span>
+      </div>
+
+      <button
+        class="logout-btn"
+        type="button"
+        (click)="auth.logout()"
+      >
+        <span aria-hidden="true">↪</span>
+        خروج
+      </button>
+    } @else {
+      <a
+        class="login-btn"
+        routerLink="/login"
+        routerLinkActive="active"
+      >
+        تسجيل الدخول
+      </a>
+    }
+  </nav>
+</header>
+
+<main class="app-main">
+  <router-outlet />
+</main>
+<app-confirm-dialog />

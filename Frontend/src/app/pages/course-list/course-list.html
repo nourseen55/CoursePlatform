@@ -1,0 +1,49 @@
+
+<section class="courses-page">
+  <div class="page-heading">
+    <div>
+      <span class="eyebrow">LEARN SOMETHING NEW</span>
+      <h2>اكتشفي الكورسات <span>✨</span></h2>
+      <p class="page-description">
+        اختاري الكورس اللي يناسبك وابدئي رحلة تعلّم جديدة.
+      </p>
+    </div>
+
+    @if (!isLoading() && !error()) {
+      <div class="courses-count">
+        <span class="count-number">{{ courses().length }}</span>
+        <span class="count-label">كورسات متاحة</span>
+      </div>
+    }
+  </div>
+
+  @if (isLoading()) {
+    <div class="state-card">
+      <div class="loader"></div>
+      <p>بنجهّزلك الكورسات...</p>
+    </div>
+  } @else if (error()) {
+    <div class="state-card error-state">
+      <span class="state-icon">⚠️</span>
+      <h3>حصلت مشكلة!</h3>
+      <p>{{ error() }}</p>
+    </div>
+  } @else {
+    @if (courses().length > 0) {
+      <div class="courses-grid">
+        @for (course of courses(); track course.id) {
+          <app-course-card
+            [course]="course"
+            (remove)="removeCourse($event)"
+          />
+        }
+      </div>
+    } @else {
+      <div class="state-card empty-state">
+        <span class="state-icon">📚</span>
+        <h3>لسه مفيش كورسات</h3>
+        <p>الكورسات الجديدة هتظهر هنا أول ما تتضاف.</p>
+      </div>
+    }
+  }
+</section>

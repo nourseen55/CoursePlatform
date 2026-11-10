@@ -1,0 +1,328 @@
+
+<section class="ins-page">
+  <header class="ins-title">
+    <h1>إدارة المستخدمين</h1>
+    <p class="ins-muted">
+      أنشئي حسابات المدرّسين والطلبة، وعدّلي بياناتهم.
+    </p>
+  </header>
+
+  <div class="stats4">
+    <div class="ins-stat">
+      <strong>{{ stats().total }}</strong>
+      <span>كل المستخدمين</span>
+    </div>
+
+    <div class="ins-stat">
+      <strong>{{ stats().instructors }}</strong>
+      <span>مدرّسين</span>
+    </div>
+
+    <div class="ins-stat">
+      <strong>{{ stats().students }}</strong>
+      <span>طلبة</span>
+    </div>
+
+    <!-- <div class="ins-stat">
+      <strong>{{ stats().inactive }}</strong>
+      <span>معطّلين</span>
+    </div> -->
+  </div>
+
+  @if (errorMessage()) {
+    <div class="ins-alert ins-alert-error" role="alert">
+      {{ errorMessage() }}
+    </div>
+  }
+
+  @if (successMessage()) {
+    <div class="ins-alert ins-alert-success" role="status">
+      {{ successMessage() }}
+    </div>
+  }
+
+  <div class="ins-card">
+    @switch (mode()) {
+
+      @case ('create') {
+        <h2>مستخدم جديد</h2>
+
+        <form
+          class="ins-form"
+          [formGroup]="createForm"
+          (ngSubmit)="create()"
+        >
+          <div class="ins-field">
+            <label for="c-name">الاسم بالكامل</label>
+
+            <input
+              id="c-name"
+              type="text"
+              formControlName="fullName"
+            />
+
+            @if (
+              createForm.controls.fullName.touched &&
+              createForm.controls.fullName.invalid
+            ) {
+              <small class="ins-field-error">
+                الاسم مطلوب (150 حرف كحد أقصى)
+              </small>
+            }
+          </div>
+
+          <div class="ins-field">
+            <label for="c-email">الإيميل</label>
+
+            <input
+              id="c-email"
+              type="email"
+              formControlName="email"
+              autocomplete="email"
+            />
+
+            @if (
+              createForm.controls.email.touched &&
+              createForm.controls.email.invalid
+            ) {
+              <small class="ins-field-error">
+                اكتبي إيميل صحيح
+              </small>
+            }
+          </div>
+
+          <div class="ins-field">
+            <label for="c-password">الباسورد</label>
+
+            <input
+              id="c-password"
+              type="password"
+              formControlName="password"
+              autocomplete="new-password"
+            />
+
+            <small class="ins-muted">
+              ٨ حروف على الأقل: حرف كبير، وحرف صغير، ورقم، ورمز (مثل ! أو @).
+            </small>
+
+            @if (
+              createForm.controls.password.touched &&
+              createForm.controls.password.invalid
+            ) {
+              <small class="ins-field-error">
+                الباسورد مش مطابق للشروط
+              </small>
+            }
+          </div>
+
+          <div class="ins-field">
+            <label for="c-role">الدور</label>
+
+            <select id="c-role" formControlName="role">
+              @for (role of roles; track role) {
+                <option [value]="role">
+                  {{ roleLabels[role] }}
+                </option>
+              }
+            </select>
+          </div>
+
+          <div>
+            <button
+              class="ins-btn ins-btn-primary"
+              type="submit"
+              [disabled]="isSaving()"
+            >
+              {{ isSaving() ? 'جاري الإنشاء...' : 'إنشاء الحساب' }}
+            </button>
+          </div>
+        </form>
+      }
+
+      @case ('edit') {
+        <h2>تعديل: {{ selected()?.fullName }}</h2>
+
+        <form
+          class="ins-form"
+          [formGroup]="editForm"
+          (ngSubmit)="saveEdit()"
+        >
+          <div class="ins-field">
+            <label for="e-name">الاسم بالكامل</label>
+
+            <input
+              id="e-name"
+              type="text"
+              formControlName="fullName"
+            />
+
+            @if (
+              editForm.controls.fullName.touched &&
+              editForm.controls.fullName.invalid
+            ) {
+              <small class="ins-field-error">
+                الاسم مطلوب (150 حرف كحد أقصى)
+              </small>
+            }
+          </div>
+
+          <div class="ins-field">
+            <label for="e-email">الإيميل</label>
+
+            <input
+              id="e-email"
+              type="email"
+              formControlName="email"
+              autocomplete="email"
+            />
+
+            <small class="ins-muted">
+              الإيميل هو اسم الدخول، فلو اتغيّر المستخدم يدخل بالجديد.
+            </small>
+
+            @if (
+              editForm.controls.email.touched &&
+              editForm.controls.email.invalid
+            ) {
+              <small class="ins-field-error">
+                اكتبي إيميل صحيح
+              </small>
+            }
+          </div>
+
+          <label class="check">
+            <input
+              type="checkbox"
+              formControlName="isActive"
+            />
+            الحساب مفعّل
+          </label>
+
+          @if (selected(); as s) {
+            @if (isSelf(s)) {
+              <small class="ins-muted">
+                مينفعش تعطّلي حسابك أنتي.
+              </small>
+            }
+          }
+
+          <div class="ins-row-actions">
+            <button
+              class="ins-btn ins-btn-primary"
+              type="submit"
+              [disabled]="isSaving()"
+            >
+              {{ isSaving() ? 'جاري الحفظ...' : 'حفظ التعديلات' }}
+            </button>
+
+            <button
+              class="ins-btn ins-btn-ghost"
+              type="button"
+              (click)="backToCreate()"
+              [disabled]="isSaving()"
+            >
+              إلغاء
+            </button>
+          </div>
+        </form>
+      }
+
+    }
+  </div>
+
+  <div class="ins-card">
+    <h2>المستخدمين</h2>
+
+    <div class="filters">
+      <input
+        #q
+        class="search"
+        type="search"
+        placeholder="ابحثي بالاسم أو الإيميل"
+        (input)="search.set(q.value)"
+      />
+
+      <select
+        #r
+        (change)="roleFilter.set(r.value)"
+      >
+        <option value="all">كل الأدوار</option>
+
+        @for (role of roles; track role) {
+          <option [value]="role">
+            {{ roleLabels[role] }}
+          </option>
+        }
+      </select>
+    </div>
+
+    @if (isLoading()) {
+      <p class="ins-empty">جاري التحميل...</p>
+    } @else {
+      <div class="ins-list">
+
+        @for (u of filtered(); track u.id) {
+          <article
+            class="ins-row"
+            [class.is-editing]="selected()?.id === u.id"
+          >
+            <div class="ins-row-main">
+              <h3>
+                {{ u.fullName }}
+
+                @if (isSelf(u)) {
+                  <small class="ins-muted">(أنتي)</small>
+                }
+              </h3>
+
+              <p class="ins-muted">{{ u.email }}</p>
+            </div>
+
+            <span class="ins-badge">
+              {{ roleLabels[u.role] ?? u.role }}
+            </span>
+
+            <span
+              class="ins-badge"
+              [class.is-published]="u.isActive"
+              [class.is-off]="!u.isActive"
+            >
+              {{ u.isActive ? 'مفعّل' : 'معطّل' }}
+            </span>
+
+            <div class="ins-row-actions">
+              <button
+                class="ins-btn ins-btn-ghost"
+                type="button"
+                (click)="startEdit(u)"
+                [disabled]="busyUserId() !== null || isSaving()"
+              >
+                تعديل
+              </button>
+
+              <!-- <button
+                class="ins-btn"
+                [class.ins-btn-danger]="u.isActive"
+                [class.ins-btn-primary]="!u.isActive"
+                type="button"
+                (click)="toggleActive(u)"
+                [disabled]="busyUserId() !== null || isSelf(u) || isSaving()"
+              >
+                {{
+                  busyUserId() === u.id
+                    ? '...'
+                    : (u.isActive ? 'تعطيل' : 'تفعيل')
+                }}
+              </button> -->
+            </div>
+          </article>
+        } @empty {
+          <p class="ins-empty">
+            مفيش مستخدمين مطابقين.
+          </p>
+        }
+
+      </div>
+    }
+  </div>
+</section>

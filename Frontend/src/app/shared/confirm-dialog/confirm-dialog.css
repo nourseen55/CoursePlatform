@@ -1,0 +1,133 @@
+
+.dialog {
+  border: 1px solid #eee8f7;
+  border-radius: 20px;
+  padding: 0;
+  width: calc(100% - 32px);
+  max-width: 420px;
+  background: #fff;
+  color: #302443;
+  box-shadow: 0 20px 55px rgba(73, 54, 109, 0.18);
+  overflow: hidden;
+}
+
+.dialog::backdrop {
+  background: rgba(48, 36, 67, 0.45);
+  backdrop-filter: blur(4px);
+}
+
+.dialog[open] {
+  animation: pop 0.18s ease-out;
+}
+
+@keyframes pop {
+  from {
+    opacity: 0;
+    transform: scale(0.96) translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+.dialog-body {
+  padding: 28px;
+  display: grid;
+  gap: 14px;
+}
+
+.dialog-title {
+  margin: 0;
+  color: #49366d;
+  font-size: 1.25rem;
+  font-weight: 700;
+  line-height: 1.5;
+}
+
+.dialog-message {
+  margin: 0;
+  color: #81758f;
+  font-size: 0.95rem;
+  line-height: 1.7;
+}
+
+.dialog-actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 12px;
+}
+
+.dialog-actions button {
+  flex: 1;
+  min-height: 44px;
+  border-radius: 11px;
+  font-weight: 600;
+  transition: all 0.2s ease;
+}
+
+/* Confirm button */
+.dialog-actions .ins-btn-primary {
+  background: #8056cf;
+  color: #fff;
+  border: 1px solid #8056cf;
+}
+
+.dialog-actions .ins-btn-primary:hover {
+  background: #6d43b8;
+  border-color: #6d43b8;
+  transform: translateY(-1px);
+}
+
+/* Cancel button */
+.dialog-actions .ins-btn-ghost {
+  background: #f8f5ff;
+  color: #6d5a87;
+  border: 1px solid #eee8f7;
+}
+
+.dialog-actions .ins-btn-ghost:hover {
+  background: #f0e9fc;
+  border-color: #dfd1f5;
+}
+
+/* Danger confirmation */
+.dialog-actions .confirm-danger {
+  background: #dc6477;
+  color: #fff;
+  border: 1px solid #dc6477;
+}
+
+.dialog-actions .confirm-danger:hover {
+  background: #c94d63;
+  border-color: #c94d63;
+}
+
+.dialog-actions button:focus-visible {
+  outline: 3px solid rgba(128, 86, 207, 0.25);
+  outline-offset: 3px;
+}
+
+@media (max-width: 480px) {
+  .dialog-body {
+    padding: 22px;
+  }
+
+  .dialog-title {
+    font-size: 1.15rem;
+  }
+
+  .dialog-actions {
+    flex-direction: column;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .dialog[open] {
+    animation: none;
+  }
+
+  .dialog-actions button {
+    transition: none;
+  }
+}

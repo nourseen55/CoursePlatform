@@ -1,0 +1,29 @@
+/* You can add global styles to this file, and also import other style files */
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  min-height: 100%;
+  background: #f8f7fc;
+}
+
+body {
+  min-height: 100vh;
+  margin: 0;
+  background: #f8f7fc;
+  font-family: "Segoe UI", Tahoma, Arial, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+button,
+input,
+textarea,
+select {
+  font: inherit;
+}
+
+a {
+  -webkit-tap-highlight-color: transparent;
+}

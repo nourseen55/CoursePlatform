@@ -1,0 +1,70 @@
+
+<section class="my-courses-page">
+  <div class="page-heading">
+    <span class="heading-icon">✦</span>
+    <div>
+      <h2>كورساتي</h2>
+      <p>تابعي الكورسات اللي اشتركتي فيها ورحلتك في التعلّم.</p>
+    </div>
+  </div>
+
+  @if (isLoading()) {
+    <div class="state-card">
+      <span class="loading-spinner"></span>
+      <p>جاري تحميل كورساتك...</p>
+    </div>
+  } @else if (error()) {
+    <div class="state-card error-card">
+      <span class="state-icon">!</span>
+      <h3>حصلت مشكلة</h3>
+      <p class="error">{{ error() }}</p>
+    </div>
+  } @else {
+    <div class="enrollments-list">
+      @for (e of enrollments(); track e.id) {
+        <article class="enrollment-card">
+          <div class="course-icon">📚</div>
+
+          <div class="enrollment-info">
+            <h3>
+              <a [routerLink]="['/courses', e.courseId]">
+                {{ e.courseTitle }}
+              </a>
+            </h3>
+
+            <div class="enrollment-meta">
+              <span class="status-badge">
+                <span class="status-dot"></span>
+                {{ e.status }}
+              </span>
+
+              <span class="enrollment-date">
+                <span aria-hidden="true">◷</span>
+                اشتراك من {{ e.enrolledAt | date:'dd/MM/yyyy' }}
+              </span>
+            </div>
+          </div>
+
+          <a
+            class="details-link"
+            [routerLink]="['/courses', e.courseId]"
+            [attr.aria-label]="'عرض تفاصيل ' + e.courseTitle"
+          >
+            <span aria-hidden="true">←</span>
+          </a>
+        </article>
+      } @empty {
+        <div class="state-card empty-card">
+          <div class="empty-icon">♡</div>
+          <h3>لسه مفيش كورسات!</h3>
+          <p>لما تشتركي في كورس، هتلاقيه موجود هنا.</p>
+
+          <a class="browse-button" routerLink="/courses">
+            تصفحي الكورسات
+            <span aria-hidden="true">←</span>
+          </a>
+        </div>
+      }
+    </div>
+  }
+</section>

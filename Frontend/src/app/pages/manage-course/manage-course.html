@@ -1,0 +1,166 @@
+<section class="ins-page">
+  <a class="ins-back" routerLink="/instructor">← رجوع للوحة المدرّس</a>
+
+  @if (isLoading()) {
+    <p class="ins-empty">جاري التحميل...</p>
+  } @else if (loadError()) {
+    <div class="ins-alert ins-alert-error" role="alert">{{ loadError() }}</div>
+  } @else if (course(); as c) {
+    <header class="ins-title">
+      <h1>{{ c.title }}</h1>
+      <span class="ins-badge"
+            [class.is-draft]="c.status === 'Draft'"
+            [class.is-published]="c.status === 'Published'">
+        {{ c.status | statusLabel }}
+      </span>
+    </header>
+
+    @if (!isOwner()) {
+      <div class="ins-alert ins-alert-error">الكورس ده مش بتاعك، تقدري تشوفيه بس.</div>
+    } @else if (isArchived()) {
+      <div class="ins-alert ins-alert-error">الكورس ده مؤرشف ومينفعش يتعدّل.</div>
+    }
+
+    @if (errorMessage()) {
+      <div class="ins-alert ins-alert-error" role="alert">{{ errorMessage() }}</div>
+    }
+    @if (successMessage()) {
+      <div class="ins-alert ins-alert-success" role="status">{{ successMessage() }}</div>
+    }
+
+    <!-- بيانات الكورس -->
+    <div class="ins-card">
+      <h2>بيانات الكورس</h2>
+
+      <form class="ins-form" [formGroup]="courseForm" (ngSubmit)="saveCourse()">
+        <div class="ins-field">
+          <label for="course-title">العنوان</label>
+          <input id="course-title" formControlName="title" />
+          @if (courseForm.controls.title.touched && courseForm.controls.title.errors?.['required']) {
+            <small class="ins-field-error">العنوان مطلوب</small>
+          }
+          @if (courseForm.controls.title.errors?.['maxlength']) {
+            <small class="ins-field-error">العنوان أطول من 200 حرف</small>
+          }
+        </div>
+
+        <div class="ins-field">
+          <label for="course-description">الوصف</label>
+          <textarea id="course-description" formControlName="description"></textarea>
+          @if (courseForm.controls.description.touched && courseForm.controls.description.errors?.['required']) {
+            <small class="ins-field-error">الوصف مطلوب</small>
+          }
+          @if (courseForm.controls.description.errors?.['maxlength']) {
+            <small class="ins-field-error">الوصف أطول من 2000 حرف</small>
+          }
+        </div>
+
+        @if (canEdit()) {
+          <div>
+            <button class="ins-btn ins-btn-primary" type="submit"
+                    [disabled]="isSavingCourse() || courseForm.pristine">
+              {{ isSavingCourse() ? 'جاري الحفظ...' : 'حفظ التعديلات' }}
+            </button>
+          </div>
+        }
+      </form>
+    </div>
+
+    <!-- الدروس -->
+    <div class="ins-card">
+      <h2>الدروس ({{ sortedLessons().length }})</h2>
+
+      <div class="ins-list">
+        @for (l of sortedLessons(); track l.id) {
+          <article class="ins-row" [class.is-editing]="editingLessonId() === l.id">
+            <div class="lesson-order">{{ l.order }}</div>
+
+            <div class="ins-row-main">
+              <h3>{{ l.title }}</h3>
+              <p class="ins-muted">{{ l.description }}</p>
+              <a class="ins-back" [href]="l.videoUrl" target="_blank" rel="noopener">
+                رابط الفيديو ↗
+              </a>
+            </div>
+
+            @if (canEdit()) {
+              <div class="ins-row-actions">
+                <button class="ins-btn ins-btn-ghost" type="button"
+                        (click)="startEdit(l)"
+                        [disabled]="busyLessonId() !== null">
+                  تعديل
+                </button>
+                <button class="ins-btn ins-btn-danger" type="button"
+                        (click)="removeLesson(l)"
+                        [disabled]="busyLessonId() !== null">
+                  {{ busyLessonId() === l.id ? '...' : 'حذف' }}
+                </button>
+              </div>
+            }
+          </article>
+        } @empty {
+          <p class="ins-empty">مفيش دروس لسه. ضيفي أول درس من النموذج اللي تحت.</p>
+        }
+      </div>
+    </div>
+
+    <!-- فورم الدرس -->
+    @if (canEdit()) {
+      <div class="ins-card" #lessonCard>
+        <h2>{{ editingLessonId() === null ? 'درس جديد' : 'تعديل الدرس' }}</h2>
+
+        <form class="ins-form" [formGroup]="lessonForm" (ngSubmit)="saveLesson()">
+          <div class="ins-field">
+            <label for="lesson-title">عنوان الدرس</label>
+            <input id="lesson-title" formControlName="title" />
+            @if (lessonForm.controls.title.touched && lessonForm.controls.title.errors?.['required']) {
+              <small class="ins-field-error">العنوان مطلوب</small>
+            }
+          </div>
+
+          <div class="ins-field">
+            <label for="lesson-description">الوصف</label>
+            <textarea id="lesson-description" formControlName="description"></textarea>
+            @if (lessonForm.controls.description.touched && lessonForm.controls.description.errors?.['required']) {
+              <small class="ins-field-error">الوصف مطلوب</small>
+            }
+          </div>
+
+          <div class="field-row">
+            <div class="ins-field">
+              <label for="lesson-url">رابط الفيديو</label>
+              <input id="lesson-url" formControlName="videoUrl" placeholder="https://..." />
+              @if (lessonForm.controls.videoUrl.touched && lessonForm.controls.videoUrl.invalid) {
+                <small class="ins-field-error">اكتبي رابط صحيح يبدأ بـ http أو https</small>
+              }
+            </div>
+
+            <div class="ins-field">
+              <label for="lesson-order">الترتيب</label>
+              <input id="lesson-order" type="number" formControlName="order" />
+              @if (lessonForm.controls.order.touched && lessonForm.controls.order.invalid) {
+                <small class="ins-field-error">لازم 1 أو أكتر</small>
+              }
+            </div>
+          </div>
+
+          <div class="ins-row-actions">
+            <button class="ins-btn ins-btn-primary" type="submit" [disabled]="isSavingLesson()">
+              @if (isSavingLesson()) {
+                جاري الحفظ...
+              } @else {
+                {{ editingLessonId() === null ? 'إضافة الدرس' : 'حفظ التعديل' }}
+              }
+            </button>
+
+            @if (editingLessonId() !== null) {
+              <button class="ins-btn ins-btn-ghost" type="button" (click)="cancelEdit()">
+                إلغاء التعديل
+              </button>
+            }
+          </div>
+        </form>
+      </div>
+    }
+  }
+</section>

@@ -1,0 +1,38 @@
+
+<div class="card">
+  <div class="card-header">
+    <div class="course-icon">
+      ✦
+    </div>
+
+    <span
+      class="badge"
+      [class.published]="course().status === 'Published'"
+    >
+      <span class="status-dot"></span>
+      {{ course().status }}
+    </span>
+  </div>
+
+  <div class="card-content">
+    <h3>
+      <a [routerLink]="['/courses', course().id]">
+        {{ course().title }}
+      </a>
+    </h3>
+
+    <p>{{ course().description }}</p>
+  </div>
+
+  <div class="card-footer">
+    <a
+      class="details-link"
+      [routerLink]="['/courses', course().id]"
+    >
+      عرض التفاصيل
+      <span aria-hidden="true">←</span>
+    </a>
+
+    
+  </div>
+</div>

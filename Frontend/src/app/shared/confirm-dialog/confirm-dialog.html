@@ -1,0 +1,33 @@
+<dialog
+  #dlg
+  class="dialog"
+  (cancel)="$event.preventDefault(); confirmService.answer(false)"
+  (click)="onBackdropClick($event)"
+>
+  @if (confirmService.options(); as o) {
+    <div class="dialog-body">
+      <h2 class="dialog-title">{{ o.title }}</h2>
+      <p class="dialog-message">{{ o.message }}</p>
+
+      <div class="dialog-actions">
+        <button
+          type="button"
+          class="ins-btn"
+          [class.confirm-danger]="o.danger"
+          [class.ins-btn-primary]="!o.danger"
+          (click)="confirmService.answer(true)"
+        >
+          {{ o.confirmText ?? 'تأكيد' }}
+        </button>
+
+        <button
+          type="button"
+          class="ins-btn ins-btn-ghost"
+          (click)="confirmService.answer(false)"
+        >
+          {{ o.cancelText ?? 'إلغاء' }}
+        </button>
+      </div>
+    </div>
+  }
+</dialog>

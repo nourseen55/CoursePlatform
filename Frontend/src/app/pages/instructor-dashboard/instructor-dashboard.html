@@ -1,0 +1,122 @@
+<section class="ins-page">
+  <header class="ins-title">
+    <h1>لوحة المدرّس</h1>
+    <p class="ins-muted">
+      أنشئي كورساتك، وضيفي الدروس، وانشريها لما تبقى جاهزة.
+    </p>
+  </header>
+
+  <div class="ins-stats">
+    <div class="ins-stat">
+      <strong>{{ stats().total }}</strong>
+      <span>كل الكورسات</span>
+    </div>
+    <div class="ins-stat">
+      <strong>{{ stats().draft }}</strong>
+      <span>مسودات</span>
+    </div>
+    <div class="ins-stat">
+      <strong>{{ stats().published }}</strong>
+      <span>منشورة</span>
+    </div>
+  </div>
+
+  <div class="ins-card">
+    <h2>كورس جديد</h2>
+
+    <form class="ins-form" [formGroup]="form" (ngSubmit)="create()">
+      <div class="ins-field">
+        <label for="title">عنوان الكورس</label>
+        <input id="title" formControlName="title" placeholder="مثال: Angular من الصفر" />
+        @if (form.controls.title.touched && form.controls.title.errors?.['required']) {
+          <small class="ins-field-error">العنوان مطلوب</small>
+        }
+        @if (form.controls.title.errors?.['maxlength']) {
+          <small class="ins-field-error">العنوان أطول من 200 حرف</small>
+        }
+      </div>
+
+      <div class="ins-field">
+        <label for="description">الوصف</label>
+        <textarea id="description" formControlName="description"
+                  placeholder="الكورس ده بيشرح إيه؟"></textarea>
+        @if (form.controls.description.touched && form.controls.description.errors?.['required']) {
+          <small class="ins-field-error">الوصف مطلوب</small>
+        }
+        @if (form.controls.description.errors?.['maxlength']) {
+          <small class="ins-field-error">الوصف أطول من 2000 حرف</small>
+        }
+      </div>
+
+      <div>
+        <button class="ins-btn ins-btn-primary" type="submit" [disabled]="isCreating()">
+          {{ isCreating() ? 'جاري الإنشاء...' : 'إنشاء الكورس' }}
+        </button>
+      </div>
+    </form>
+  </div>
+
+  @if (errorMessage()) {
+    <div class="ins-alert ins-alert-error" role="alert">{{ errorMessage() }}</div>
+  }
+
+  <div class="ins-card">
+    <h2>كورساتي</h2>
+
+    @if (isLoading()) {
+      <p class="ins-empty">جاري التحميل...</p>
+    } @else {
+      <div class="ins-list">
+        @for (c of courses(); track c.id) {
+          <article class="ins-row">
+            <div class="ins-row-main">
+              <h3>{{ c.title }}</h3>
+              <p class="ins-muted">
+                {{ c.lessonsCount }} دروس · أُنشئ {{ c.createdAt | date:'dd/MM/yyyy' }}
+              </p>
+            </div>
+
+            <span class="ins-badge"
+                  [class.is-draft]="c.status === 'Draft'"
+                  [class.is-published]="c.status === 'Published'">
+              {{ c.status | statusLabel }}
+            </span>
+
+            <div class="ins-row-actions">
+              <a class="ins-btn ins-btn-ghost" [routerLink]="['/instructor/courses', c.id]">
+                إدارة
+              </a>
+
+              @if (c.status === 'Draft') {
+                <button class="ins-btn ins-btn-primary" type="button"
+                        (click)="publish(c)"
+                        [disabled]="busyId() !== null || c.lessonsCount === 0">
+                  {{ busyId() === c.id ? '...' : 'نشر' }}
+                </button>
+                <button class="ins-btn ins-btn-danger" type="button"
+                        (click)="remove(c)"
+                        [disabled]="busyId() !== null">
+                  حذف
+                </button>
+              }
+
+              @if (c.status === 'Published') {
+                <button class="ins-btn ins-btn-ghost" type="button"
+                        (click)="archive(c)"
+                        [disabled]="busyId() !== null">
+                  {{ busyId() === c.id ? '...' : 'أرشفة' }}
+                </button>
+              }
+            </div>
+
+            @if (c.status === 'Draft' && c.lessonsCount === 0) {
+              <p class="ins-hint">ضيفي درس واحد على الأقل عشان تقدري تنشري الكورس.</p>
+            }
+          </article>
+        } @empty {
+          <p class="ins-empty">لسه معملتيش كورسات. ابدأي بالنموذج اللي فوق.</p>
+        }
+      </div>
+    }
+  </div>
+</section>
