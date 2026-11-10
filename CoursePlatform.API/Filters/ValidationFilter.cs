@@ -25,17 +25,8 @@ namespace CoursePlatform.API.Filters
 
                 if (validator is null)
                     continue;
-
-                var validationContextType = typeof(ValidationContext<>)
-                    .MakeGenericType(argument.GetType());
-
-                var validationContext =
-                    Activator.CreateInstance(
-                        validationContextType,
-                        argument) as IValidationContext;
-
                 var result = await validator.ValidateAsync(
-                    validationContext!,
+                    argument,
                     context.HttpContext.RequestAborted);
 
                 if (!result.IsValid)

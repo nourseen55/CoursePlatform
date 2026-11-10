@@ -14,6 +14,17 @@ namespace CoursePlatform.Application.Interfaces.Services
           int pageSize);
         Task<(CourseActionResult result, CourseWithLessonsResponse? data)>
     GetByIdAsync(int courseId);
+        Task<IReadOnlyList<InstructorCourseResponse>> GetByInstructorAsync(
+    string instructorId);
+
+        Task<(CourseActionResult result, CourseResponse? data)> UpdateAsync(
+            int courseId,
+            UpdateCourseRequest request,
+            string instructorId);
+
+        Task<CourseActionResult> DeleteAsync(
+            int courseId,
+            string instructorId);
         Task<CourseActionResult> PublishAsync(
     int courseId,
     string instructorId);

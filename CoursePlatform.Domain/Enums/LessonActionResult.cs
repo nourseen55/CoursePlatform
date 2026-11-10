@@ -7,5 +7,8 @@
         Unauthorized,
         Failed,
         NotFound,
+        HasProgress,
+        DuplicateOrder,
+        InvalidStatus
     }
 }

@@ -123,5 +123,71 @@ namespace CoursePlatform.API.Controllers
             return NoContent();
         }
 
+        [HttpGet("mine")]
+        public async Task<IActionResult> GetMine()
+        {
+            var instructorId = User.GetUserId();
+
+            if (instructorId is null)
+                return Unauthorized();
+
+            var result = await courseService.GetByInstructorAsync(instructorId);
+
+            return Ok(result);
+        } 
+
+        [HttpPut("{id:int}")]
+        public async Task<IActionResult> Update(
+            int id,
+            UpdateCourseRequest request)
+        {
+            var instructorId = User.GetUserId();
+
+            if (instructorId is null)
+                return Unauthorized();
+
+            var result = await courseService.UpdateAsync(
+                id,
+                request,
+                instructorId);
+
+            if (result.result == CourseActionResult.NotFound)
+                return NotFound("Course not found.");
+
+            if (result.result == CourseActionResult.Unauthorized)
+                return Forbid();
+
+            if (result.result == CourseActionResult.InvalidStatus)
+                return BadRequest("Archived courses cannot be edited.");
+
+            if (result.result == CourseActionResult.Failed)
+                return BadRequest("Failed to update course.");
+
+            return Ok(result.data);
+        }
+
+        [HttpDelete("{id:int}")]
+        public async Task<IActionResult> Delete(int id)
+        {
+            var instructorId = User.GetUserId();
+
+            if (instructorId is null)
+                return Unauthorized();
+
+            var result = await courseService.DeleteAsync(id, instructorId);
+
+            if (result == CourseActionResult.NotFound)
+                return NotFound("Course not found.");
+
+            if (result == CourseActionResult.Unauthorized)
+                return Forbid();
+
+            if (result == CourseActionResult.InvalidStatus)
+                return BadRequest(
+                    "Only draft courses can be deleted. Archive the course instead.");
+
+            return NoContent();
+        }
+
     }
 }

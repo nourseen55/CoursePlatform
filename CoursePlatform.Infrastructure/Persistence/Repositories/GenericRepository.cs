@@ -81,11 +81,16 @@ public class GenericRepository<T> : IGenericRepository<T>
 
     public async Task<(IReadOnlyList<T> Items, int TotalCount)> GetPagedAsync(
     int pageNumber,
-    int pageSize, params Expression<Func<T, object>>[] includes)
+    int pageSize, Expression<Func<T, bool>>? filter = null,
+    params Expression<Func<T, object>>[] includes)
     {
         var query = _dbSet
           .AsNoTracking()
           .AsQueryable();
+        if (filter != null)
+        {
+            query = query.Where(filter);
+        }
 
         foreach (var include in includes)
         {

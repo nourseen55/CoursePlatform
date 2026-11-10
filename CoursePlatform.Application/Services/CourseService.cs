@@ -51,7 +51,7 @@ namespace CoursePlatform.Application.Services
                 .Repository<Course>()
                 .GetPagedAsync(
                     pageNumber,
-                    pageSize,
+                    pageSize, c => c.Status == CourseStatus.Published,
                     c => c.Lessons);
 
             var items = result.Items
@@ -136,6 +136,102 @@ namespace CoursePlatform.Application.Services
                 CourseActionResult.Success,
                 response);
         }
+
+        public async Task<IReadOnlyList<InstructorCourseResponse>> GetByInstructorAsync(
+    string instructorId)
+        {
+            var courses = await unitOfWork
+                .Repository<Course>()
+                .GetAllAsync(c => c.InstructorId == instructorId, c => c.Lessons);
+
+            return courses
+                .OrderByDescending(c => c.CreatedAt)
+                .Select(c => new InstructorCourseResponse
+                {
+                    Id = c.Id,
+                    Title = c.Title,
+                    Description = c.Description,
+                    InstructorId = c.InstructorId,
+                    Status = c.Status.ToString(),
+                    CreatedAt = c.CreatedAt,
+                    LessonsCount = c.Lessons.Count
+                })
+                .ToList();
+        }
+
+        public async Task<(CourseActionResult result, CourseResponse? data)> UpdateAsync(
+            int courseId,
+            UpdateCourseRequest request,
+            string instructorId)
+        {
+            var course = await unitOfWork
+                .Repository<Course>()
+                .GetByIdAsync(courseId);
+
+            if (course is null)
+                return (CourseActionResult.NotFound, null);
+
+            if (course.InstructorId != instructorId)
+                return (CourseActionResult.Unauthorized, null);
+
+            if (course.Status == CourseStatus.Archived)
+                return (CourseActionResult.InvalidStatus, null);
+
+            course.Title = request.Title.Trim();
+            course.Description = request.Description.Trim();
+            course.UpdatedAt = DateTime.UtcNow;
+
+            unitOfWork
+                .Repository<Course>()
+                .Update(course);
+
+            await unitOfWork.SaveChangesAsync();
+
+            return (CourseActionResult.Success, new CourseResponse
+            {
+                Id = course.Id,
+                Title = course.Title,
+                Description = course.Description,
+                InstructorId = course.InstructorId,
+                Status = course.Status.ToString(),
+                CreatedAt = course.CreatedAt
+            });
+        }
+
+        public async Task<CourseActionResult> DeleteAsync(
+            int courseId,
+            string instructorId)
+        {
+            var course = await unitOfWork
+                .Repository<Course>()
+                .GetByIdAsync(courseId);
+
+            if (course is null)
+                return CourseActionResult.NotFound;
+
+            if (course.InstructorId != instructorId)
+                return CourseActionResult.Unauthorized;
+
+            if (course.Status != CourseStatus.Draft)
+                return CourseActionResult.InvalidStatus;
+
+            var hasEnrollments = await unitOfWork
+                .Repository<Enrollment>()
+                .FirstOrDefaultAsync(e => e.CourseId == courseId) is not null;
+
+            if (hasEnrollments)
+                return CourseActionResult.InvalidStatus;
+
+            unitOfWork
+                .Repository<Course>()
+                .Delete(course);
+
+            await unitOfWork.SaveChangesAsync();
+
+            return CourseActionResult.Success;
+        }
+
+
         public async Task<CourseActionResult> PublishAsync(
     int courseId,
     string instructorId)

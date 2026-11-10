@@ -116,7 +116,13 @@ namespace CoursePlatform.API.DependencyInjection
                             ClockSkew = TimeSpan.Zero
                         };
                 });
-
+            services.AddCors(options =>
+            {
+                options.AddPolicy("Angular", policy =>
+                    policy.WithOrigins("http://localhost:4200")
+                          .AllowAnyHeader()
+                          .AllowAnyMethod());
+            });
             // Authorization
             services.AddAuthorization();
 

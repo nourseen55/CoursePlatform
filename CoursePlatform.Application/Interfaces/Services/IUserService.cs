@@ -8,7 +8,8 @@ public interface IUserService
     Task<(UserActionResult result, UserResponse? data)> AddAsync(
         CreateUserRequest request,
         string adminId);
-
+    Task<(UserActionResult result, IReadOnlyList<UserResponse>? data)> GetAllAsync(
+    string adminId);
     Task<(UserActionResult result, UserResponse? data)> GetByIdAsync(
         string userId,
         string adminId);

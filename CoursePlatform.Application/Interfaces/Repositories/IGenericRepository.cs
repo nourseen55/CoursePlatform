@@ -23,7 +23,7 @@ public interface IGenericRepository<T>
     Task<(
    IReadOnlyList<T > Items ,  int TotalCount)> GetPagedAsync(
        int pageNumber,
-       int pageSize, params Expression<Func<T, object>>[] includes);
+       int pageSize, Expression<Func<T, bool>>? filter = null, params Expression<Func<T, object>>[] includes);
 
     Task AddAsync(T entity);
 

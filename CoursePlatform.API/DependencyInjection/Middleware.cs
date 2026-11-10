@@ -14,6 +14,7 @@
             }
 
             app.UseHttpsRedirection();
+            app.UseCors("Angular");       
 
             app.UseAuthentication();
 

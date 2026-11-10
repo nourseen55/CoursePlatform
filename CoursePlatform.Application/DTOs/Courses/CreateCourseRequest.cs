@@ -20,3 +20,14 @@ public class CourseResponse
 
     public DateTime CreatedAt { get; set; }
 }
+public class UpdateCourseRequest
+{
+    public string Title { get; set; } = string.Empty;
+
+    public string Description { get; set; } = string.Empty;
+}
+
+public class InstructorCourseResponse : CourseResponse
+{
+    public int LessonsCount { get; set; }
+}

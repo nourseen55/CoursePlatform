@@ -12,6 +12,22 @@ namespace CoursePlatform.API.Controllers
     [Authorize(Roles = "Admin")]
     public class UsersController(IUserService _userService) : ControllerBase
     {
+        [HttpGet]
+        public async Task<IActionResult> GetAll()
+        {
+            var adminId = User.GetUserId();
+
+            if (adminId is null)
+                return Unauthorized();
+
+            var result = await _userService.GetAllAsync(adminId);
+
+            if (result.result == UserActionResult.Unauthorized)
+                return Forbid();
+
+            return Ok(result.data);
+        }
+
         [HttpPost("create")]
         public async Task<IActionResult> Add(
         CreateUserRequest request,

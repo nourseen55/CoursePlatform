@@ -11,6 +11,36 @@ public class UserService(
     UserManager<ApplicationUser> userManager,
     IUnitOfWork unitOfWork) : IUserService
 {
+    public async Task<(UserActionResult result, IReadOnlyList<UserResponse>? data)> GetAllAsync(
+    string adminId)
+    {
+        var admin = await userManager.FindByIdAsync(adminId);
+
+        if (admin is null ||
+            !admin.IsActive ||
+            !await userManager.IsInRoleAsync(admin, Roles.Admin))
+        {
+            return (UserActionResult.Unauthorized, null);
+        }
+
+        var users = new List<UserResponse>();
+
+        foreach (var role in new[] { Roles.Admin, Roles.Instructor, Roles.Student })
+        {
+            var usersInRole = await userManager.GetUsersInRoleAsync(role);
+
+            users.AddRange(usersInRole.Select(u => new UserResponse
+            {
+                Id = u.Id,
+                FullName = u.FullName,
+                Email = u.Email!,
+                Role = role,
+                IsActive = u.IsActive
+            }));
+        }
+
+        return (UserActionResult.Success, users.OrderBy(u => u.FullName).ToList());
+    }
     public async Task<(UserActionResult result, UserResponse? data)> AddAsync(
         CreateUserRequest request,
         string adminId)
@@ -47,6 +77,7 @@ public class UserService(
             FullName = request.FullName.Trim(),
             Email = request.Email.Trim(),
             UserName = request.Email.Trim(),
+            IsActive = true,
             EmailConfirmed = true
         };
 
